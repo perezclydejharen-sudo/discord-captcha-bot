@@ -20,6 +20,7 @@ const { VerificationConfig } = require('./config');
 const { CaptchaSessionManager } = require('./session');
 const { generateCaptchaText, generateCaptchaImage } = require('./captcha');
 const { AttachmentBuilder } = require('discord.js');
+const http = require('http');
 
 const client = new Client({
   intents: [
@@ -339,19 +340,36 @@ client.on(Events.GuildMemberAdd, async (member) => {
   }
 });
 
+// Health check server for Railway
+const PORT = process.env.PORT || 3000;
+const healthServer = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({
+    status: 'ok',
+    ready: client.isReady(),
+    uptime: process.uptime(),
+  }));
+});
+
+healthServer.listen(PORT, () => {
+  console.log(`Health check server listening on port ${PORT}`);
+});
+
+client.login(process.env.DISCORD_TOKEN).catch((err) => {
+  console.error('Failed to login:', err);
+});
+
 // Clean up sessions on shutdown
 process.on('SIGINT', () => {
   captchaManager.clearAll();
+  healthServer.close();
   client.destroy();
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
   captchaManager.clearAll();
+  healthServer.close();
   client.destroy();
   process.exit(0);
-});
-
-client.login(process.env.DISCORD_TOKEN).catch((err) => {
-  console.error('Failed to login:', err);
 });
