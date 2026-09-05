@@ -1,0 +1,13 @@
+{
+  "name": "discord-captcha-bot",
+  "private": true,
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.8",
+    "discord.js": "^14.27.0",
+    "dotenv": "^17.4.2"
+  }
+}
